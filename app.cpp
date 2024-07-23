@@ -21,19 +21,21 @@ int main()
 	
 	array <array<uint8_t, COLUMN>, STRING> data{};
 	array <array<uint8_t, COLUMN>, STRING> key{}; 
-	char buf[16] = {};
+	array <array<uint8_t, COLUMN>, STRING> cipher{};
+	char buf[BYTES_IN_BLOCK] = {};
 	
 	ifstream input_key(file_key, ios::binary);
-	ifstream input_data(file_data, ios::binary);
-	ofstream out_cipher(file_cipher, ios::binary);
+	ofstream io_cipher(file_cipher, ios::binary);
+	FILE* input_data;
+	fopen_s(&input_data, file_data, "r");
 
-	input_key.read(buf, 16);
+	input_key.read(buf, BYTES_IN_BLOCK);
 
 	for (uint8_t i = 0; i < STRING; i++)
 	{
 		for (uint8_t j = 0; j < COLUMN; j++)
 		{
-			key[i][j] = buf[j + i * 4];
+			key[i][j] = buf[j + i * STRING];
 		}
 	}
 
@@ -47,36 +49,60 @@ int main()
 		cout << endl;
 	}
 	cout << endl;
+	
+	fill(buf, buf + sizeof(buf), 0);
 
-	input_data.read(buf, 16);
-
-	for (uint8_t i = 0; i < STRING; i++)
+	while (fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_data))
 	{
-		for (uint8_t j = 0; j < COLUMN; j++)
+		//fill(buf, buf + sizeof(buf), 0);
+		//fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_data);
+
+		for (uint8_t i = 0; i < STRING; i++)
 		{
-			data[i][j] = buf[j + i * 4];
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				data[i][j] = buf[j + i * STRING];
+			}
 		}
-	}
 
-	cout << "data" << endl;
-	for (uint8_t i = 0; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
+		fill(buf, buf + sizeof(buf), 0);
+
+		cout << "data" << endl;
+		for (uint8_t i = 0; i < STRING; i++)
 		{
-			cout << hex << static_cast<unsigned>(data[i][j]) << "  ";
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				cout << hex << static_cast<unsigned>(data[i][j]) << "  ";
+			}
+			cout << endl;
 		}
 		cout << endl;
-	}
-	cout << endl;
 
-	array <array<uint8_t, COLUMN>, STRING> cipher = AES(data, key);
-
-	for (uint8_t i = 0; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
+		for (uint8_t i = 0; i < STRING; i++)
 		{
-			out_cipher << cipher[i][j];
+			fill(cipher[i].begin(), cipher[i].end(), 0);
 		}
+
+		cipher = AES(data, key);
+
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				io_cipher << cipher[i][j];
+			}
+		}
+
+		cout << "cipher" << endl;
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				cout << hex << static_cast<unsigned>(cipher[i][j]) << "  ";
+			}
+			cout << endl;
+		}
+		cout << endl;
 	}
 
 	return 0;

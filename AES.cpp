@@ -141,27 +141,6 @@ array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING
 	array <array<uint8_t, COLUMN>, STRING> round_key = key;
 	uint8_t rcon_num = 0x01;
 
-	cout << "state before" << endl;
-
-	for (uint8_t i = 0; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
-		{
-			cout << hex << static_cast<unsigned>(state[i][j]) << "  ";
-		}
-		cout << endl;
-	}
-	cout << endl;
-	cout << "state round_key" << endl;
-	for (uint8_t i = 0; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
-		{
-			cout << hex << static_cast<unsigned>(round_key[i][j]) << "  ";
-		}
-		cout << endl;
-	}
-
 	add_round_key(state, round_key);
 
 	for (uint8_t round = 1; round < CNT_ROUND; round++)
@@ -197,17 +176,6 @@ array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING
 	key_generation(round_key, rcon_num);
 
 	add_round_key(state, round_key);
-
-	cout << "state after" << endl;
-	for (uint8_t i = 0; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
-		{
-			cout << hex << static_cast<unsigned>(state[i][j]) << "  ";
-		}
-		cout << endl;
-	}
-	cout << endl;
 
 	return state;
 }

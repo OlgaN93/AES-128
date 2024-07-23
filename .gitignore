@@ -1,0 +1,9 @@
+.vs/
+AES.sln
+AES.vcxproj
+AES.vcxproj.filters
+AES.vcxproj.user
+cipher_data.bin
+file_data.bin
+file_key.bin
+x64/

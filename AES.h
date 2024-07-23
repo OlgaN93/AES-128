@@ -14,6 +14,7 @@
 const uint8_t COLUMN = 4;
 const uint8_t STRING = 4;
 const uint8_t CNT_ROUND = 10;
+const uint8_t BYTES_IN_BLOCK = 16;
 const uint8_t MODULE = 0x1b;
 const uint8_t SBOX[16][16] =
 {  // 0     1     2     3     4     5     6     7     8     9     a     b     c     d     e     f
