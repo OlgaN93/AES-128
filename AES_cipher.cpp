@@ -12,15 +12,15 @@
 
 using namespace std;
 
-//void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now)
-//{
-//	for (uint8_t j = 0; j < COLUMN; j++)
-//	{
-//		uint8_t s_col = mas[str_now][j] & 0xf;
-//		uint8_t s_str = (mas[str_now][j] >> 4) & 0xf;
-//		mas[str_now][j] = SBOX[s_str][s_col];
-//	}
-//}
+void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now)
+{
+	for (uint8_t j = 0; j < COLUMN; j++)
+	{
+		uint8_t s_col = mas[str_now][j] & 0xf;
+		uint8_t s_str = (mas[str_now][j] >> 4) & 0xf;
+		mas[str_now][j] = SBOX[s_str][s_col];
+	}
+}
 
 
 void add_round_key(array <array<uint8_t, COLUMN>, STRING>& state, array <array<uint8_t, COLUMN>, STRING>& round_key)
@@ -56,29 +56,51 @@ void shift_rows(array <array<uint8_t, COLUMN>, STRING>& state)
 	}
 }
 
-uint8_t multiply(uint8_t state_num, uint8_t matrix_num) // лучше сделать с highbit?
+uint8_t multiply(uint8_t state_num, uint8_t matrix_num)
 {
-	if (matrix_num == 1)
-	{
-		return state_num;
-	}
-	else
-	{
-		uint8_t num_mult = state_num << 1;
+	uint8_t summ = 0;
+	uint8_t hi_bit_set;
 
-		if (state_num > 0x7f)
+	for (uint8_t i = 0; i < 8; i++) 
+	{
+		if (state_num & 1)
 		{
-			num_mult ^= MODULE;
+			summ ^= matrix_num;
 		}
 
-		if (matrix_num == 3)
-		{
-			num_mult ^= state_num;
-		}
+		hi_bit_set = (matrix_num & 0x80);
+		matrix_num <<= 1;
 
-		return num_mult;
+		if (hi_bit_set)
+		{
+			matrix_num ^= 0x1b;
+		}
+		state_num >>= 1;
 	}
+	return summ;
 }
+	
+	//if (matrix_num == 1)
+	//{
+	//	return state_num;
+	//}
+	//else
+	//{
+	//	uint8_t num_mult = state_num << 1;
+
+	//	if (state_num > 0x7f)
+	//	{
+	//		num_mult ^= MODULE;
+	//	}
+
+	//	if (matrix_num == 3)
+	//	{
+	//		num_mult ^= state_num;
+	//	}
+
+	//	return num_mult;
+	//}
+//}
 
 void mix_columns(array <array<uint8_t, COLUMN>, STRING>& state)
 {

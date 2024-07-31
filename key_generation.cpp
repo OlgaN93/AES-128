@@ -17,16 +17,6 @@ void rot_word(array <array<uint8_t, COLUMN>, STRING>& mas, uint8_t str_now)
 	rotate(mas[str_now].begin(), mas[str_now].begin() + 1, mas[str_now].end());
 }
 
-void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now)
-{
-	for (uint8_t j = 0; j < COLUMN; j++)
-	{
-		uint8_t s_col = mas[str_now][j] & 0xf;
-		uint8_t s_str = (mas[str_now][j] >> 4) & 0xf;
-		mas[str_now][j] = SBOX[s_str][s_col];
-	}
-}
-
 array <array<array<uint8_t, COLUMN>, STRING>, (CNT_ROUND + 1)> key_generation(array <array<uint8_t, COLUMN>, STRING>& key)
 {
 	array <array<uint8_t, COLUMN>, STRING> round_key = {};
