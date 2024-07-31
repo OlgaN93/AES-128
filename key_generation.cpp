@@ -27,30 +27,48 @@ void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now
 	}
 }
 
-void key_generation(array <array<uint8_t, COLUMN>, STRING>& key, uint8_t rcon_num)
+array <array<array<uint8_t, COLUMN>, STRING>, (CNT_ROUND + 1)> key_generation(array <array<uint8_t, COLUMN>, STRING>& key)
 {
-	array <array<uint8_t, COLUMN>, STRING> round_key = key;
+	array <array<uint8_t, COLUMN>, STRING> round_key = {};
+	array <array<array<uint8_t, COLUMN>, STRING>, (CNT_ROUND + 1)> extended_key = {};
 
 	uint8_t str_now = 3;
+	uint8_t rcon_num = 0x01;
 
-	rot_word(round_key, str_now);
-
-	sub_byte(round_key, str_now);
-
-	round_key[0][0] = key[0][0] ^ round_key[3][0] ^ rcon_num;
-
-	for (uint8_t j = 1; j < COLUMN; j++)
+	for (uint8_t i = 0; i <= CNT_ROUND; i++)
 	{
-		round_key[0][j] = key[0][j] ^ round_key[3][j];
-	}
+		extended_key[i] = key;
 
-	for (uint8_t i = 1; i < STRING; i++)
-	{
-		for (uint8_t j = 0; j < COLUMN; j++)
+		round_key = key;
+
+		rot_word(round_key, str_now);
+
+		sub_byte(round_key, str_now);
+
+		round_key[0][0] = key[0][0] ^ round_key[3][0] ^ rcon_num;
+
+		for (uint8_t j = 1; j < COLUMN; j++)
 		{
-			round_key[i][j] = key[i][j] ^ round_key[i - 1][j];
+			round_key[0][j] = key[0][j] ^ round_key[3][j];
+		}
+
+		for (uint8_t i = 1; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				round_key[i][j] = key[i][j] ^ round_key[i - 1][j];
+			}
+		}
+
+		key = round_key;
+
+		uint8_t high_bite = rcon_num & 0x80;
+		rcon_num <<= 1;
+		if (high_bite)
+		{
+			rcon_num ^= MODULE;
 		}
 	}
 
-	key = round_key;
+	return extended_key;
 }

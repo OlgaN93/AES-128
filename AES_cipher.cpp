@@ -104,10 +104,11 @@ void mix_columns(array <array<uint8_t, COLUMN>, STRING>& state)
 array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING> data, array <array<uint8_t, COLUMN>, STRING> key)
 {
 	array <array<uint8_t, COLUMN>, STRING> state = data;
-	array <array<uint8_t, COLUMN>, STRING> round_key = key;
-	uint8_t rcon_num = 0x01;
+	array <array<uint8_t, COLUMN>, STRING> round_key = {};
 
-	add_round_key(state, round_key);
+	add_round_key(state, key);
+
+	array <array<array<uint8_t, COLUMN>, STRING>, (CNT_ROUND + 1)> extended_key = key_generation(key);
 
 	for (uint8_t round = 1; round < CNT_ROUND; round++)
 	{
@@ -120,14 +121,7 @@ array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING
 
 		mix_columns(state);
 
-		key_generation(round_key, rcon_num);
-
-		uint8_t high_bite = rcon_num & 0x80;
-		rcon_num <<= 1;
-		if (high_bite)
-		{
-			rcon_num ^= MODULE;
-		}
+		round_key = extended_key[round];
 
 		add_round_key(state, round_key);
 	}
@@ -139,7 +133,7 @@ array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING
 
 	shift_rows(state);
 
-	key_generation(round_key, rcon_num);
+	round_key = extended_key[CNT_ROUND];
 
 	add_round_key(state, round_key);
 
