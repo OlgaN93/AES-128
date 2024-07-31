@@ -25,7 +25,7 @@ int main()
 	char buf[BYTES_IN_BLOCK] = {};
 	
 	ifstream input_key(file_key, ios::binary);
-	ofstream io_cipher(file_cipher, ios::binary);
+	ofstream out_cipher(file_cipher, ios::binary);
 	FILE* input_data;
 	fopen_s(&input_data, file_data, "r");
 
@@ -54,9 +54,6 @@ int main()
 
 	while (fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_data))
 	{
-		//fill(buf, buf + sizeof(buf), 0);
-		//fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_data);
-
 		for (uint8_t i = 0; i < STRING; i++)
 		{
 			for (uint8_t j = 0; j < COLUMN; j++)
@@ -89,7 +86,7 @@ int main()
 		{
 			for (uint8_t j = 0; j < COLUMN; j++)
 			{
-				io_cipher << cipher[i][j];
+				out_cipher << cipher[i][j];
 			}
 		}
 

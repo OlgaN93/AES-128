@@ -1,6 +1,6 @@
 /**
  * \file
- * Объявление функций и констант
+ * Объявление функций и констант для шифрования AES
  */
 
 #ifndef ALG_AES
@@ -38,10 +38,12 @@ const uint8_t SBOX[16][16] =
 const std::array<uint8_t, COLUMN> MATRIX = {0x02, 0x03, 0x01, 0x01};
 
 std::array <std::array<uint8_t, COLUMN>, STRING> AES(std::array <std::array<uint8_t, COLUMN>, STRING>data, std::array <std::array<uint8_t, COLUMN>, STRING> key);
-void key_generation(std::array <std::array<uint8_t, COLUMN>, STRING> &key, uint8_t rcon_num);
-void rot_word(std::array <std::array<uint8_t, COLUMN>, STRING> &mas, uint8_t str_now);
-void sub_byte(std::array <std::array<uint8_t, COLUMN>, STRING> &mas, const unsigned int str_now);
+void sub_byte(std::array <std::array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now);
+void rot_word(std::array <std::array<uint8_t, COLUMN>, STRING>& mas, uint8_t str_now);
+void key_generation(std::array <std::array<uint8_t, COLUMN>, STRING>& key, uint8_t rcon_num);
 void add_round_key(std::array <std::array<uint8_t, COLUMN>, STRING>& state, std::array <std::array<uint8_t, COLUMN>, STRING>& round_key);
 void shift_rows(std::array <std::array<uint8_t, COLUMN>, STRING>& state);
+uint8_t multiply(uint8_t state_num, uint8_t matrix_num);
+void mix_columns(std::array <std::array<uint8_t, COLUMN>, STRING>& state);
 
 #endif
