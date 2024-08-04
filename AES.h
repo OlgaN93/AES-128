@@ -1,7 +1,7 @@
 /**
- * \file
- * Объявление функций и констант
- */
+  * \file
+  * Объявление функций и констант
+  */
 
 #ifndef ALG_AES
 #define ALG_AES
@@ -10,6 +10,10 @@
 #include <array>
 
 #include<stdint.h>
+
+const char FILE_DATA[100] = "D:\\For_Olga\\lern_C++\\projects\\AES\\file_data.bin"; //"pathToFile\\file_data";
+const char FILE_KEY[100] = "D:\\For_Olga\\lern_C++\\projects\\AES\\file_key.bin"; //"pathToFile\\file_key";
+const char FILE_CIPHER[100] = "D:\\For_Olga\\lern_C++\\projects\\AES\\cipher_data.bin"; //"pathToFile\\cipher_data";
 
 const uint8_t COLUMN = 4;
 const uint8_t STRING = 4;
@@ -70,5 +74,7 @@ void mix_columns(std::array <std::array<uint8_t, COLUMN>, STRING>& state);
 void inv_sub_byte(std::array <std::array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now);
 void inv_shift_rows(std::array <std::array<uint8_t, COLUMN>, STRING>& state);
 void inv_mix_columns(std::array <std::array<uint8_t, COLUMN>, STRING>& state);
+void cipher(std::array <std::array<uint8_t, COLUMN>, STRING> key);
+void decipher(std::array <std::array<uint8_t, COLUMN>, STRING> key);
 
 #endif

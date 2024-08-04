@@ -1,7 +1,7 @@
 /**
- \file
- Расширение ключа
- */
+  * \file
+  * Расширение ключа
+  */
 
 #include <array>
 #include <iostream>
@@ -12,11 +12,24 @@
 
 using namespace std;
 
+/**
+  * Процедура циклического сдвига на одну ячейку вверх первого столбца текущего блока раундового ключа
+  *
+  * \param &mas Ссылка на массив, содержащий ключ шифрования
+  * \param str_now Номер данной строки блока данных
+  */
 void rot_word(array <array<uint8_t, COLUMN>, STRING>& mas, uint8_t str_now)
 {
 	rotate(mas[str_now].begin(), mas[str_now].begin() + 1, mas[str_now].end());
 }
 
+/**
+  * Процедура генерации раундовых ключей
+  *
+  * \param &key Ссылка на массив, содержащий ключ шифрования
+  * 
+  * \return Расширенный ключ
+  */
 array <array<array<uint8_t, COLUMN>, STRING>, (CNT_ROUND + 1)> key_generation(array <array<uint8_t, COLUMN>, STRING>& key)
 {
 	array <array<uint8_t, COLUMN>, STRING> round_key = {};

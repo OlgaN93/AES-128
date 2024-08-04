@@ -1,9 +1,10 @@
 ﻿/**
- \file
- Реализация шифрования AES
- */
+  * \file
+  * Реализация шифрования AES
+  */
 
 #include <array>
+#include <fstream>
 #include <iostream>
 
 #include<stdint.h>
@@ -12,6 +13,12 @@
 
 using namespace std;
 
+/**
+  * Процедура подмены байтов в соответствии с таблицей замены SBOX
+  *
+  * \param &mas Ссылка на массив, содержащий блок данных
+  * \param str_now Номер данной строки блока данных 
+  */
 void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now)
 {
 	for (uint8_t j = 0; j < COLUMN; j++)
@@ -22,7 +29,12 @@ void sub_byte(array <array<uint8_t, COLUMN>, STRING>& mas, const uint8_t str_now
 	}
 }
 
-
+/**
+  * Процедура логического сложения по модулю 2 столбца блока состояния со столбцом блока текущего раундового ключа
+  *
+  * \param &state Ссылка на массив, содержащий блок состояния
+  * \param &round_key Ссылка на массив, содержащий раундовый ключ
+  */
 void add_round_key(array <array<uint8_t, COLUMN>, STRING>& state, array <array<uint8_t, COLUMN>, STRING>& round_key)
 {
 	for (uint8_t i = 0; i < STRING; i++)
@@ -34,6 +46,11 @@ void add_round_key(array <array<uint8_t, COLUMN>, STRING>& state, array <array<u
 	}
 }
 
+/**
+  * Процедура циклического сдвига в рядах блока состояния
+  *
+  * \param &state Ссылка на массив, содержащий блок состояния
+  */
 void shift_rows(array <array<uint8_t, COLUMN>, STRING>& state)
 {
 	array<uint8_t, STRING> temp{};
@@ -56,16 +73,24 @@ void shift_rows(array <array<uint8_t, COLUMN>, STRING>& state)
 	}
 }
 
+/**
+  * Умножение чисел в поле Галуа по модулю x^4+1
+  *
+  * \param state_num Число из данных блока состояния
+  * \param matrix_num Число из фиксированной матрицы
+  * 
+  * \return Произведение чисел
+  */
 uint8_t multiply(uint8_t state_num, uint8_t matrix_num)
 {
-	uint8_t summ = 0;
+	uint8_t product = 0;
 	uint8_t hi_bit_set;
 
 	for (uint8_t i = 0; i < 8; i++) 
 	{
 		if (state_num & 1)
 		{
-			summ ^= matrix_num;
+			product ^= matrix_num;
 		}
 
 		hi_bit_set = (matrix_num & 0x80);
@@ -77,31 +102,14 @@ uint8_t multiply(uint8_t state_num, uint8_t matrix_num)
 		}
 		state_num >>= 1;
 	}
-	return summ;
+	return product;
 }
-	
-	//if (matrix_num == 1)
-	//{
-	//	return state_num;
-	//}
-	//else
-	//{
-	//	uint8_t num_mult = state_num << 1;
 
-	//	if (state_num > 0x7f)
-	//	{
-	//		num_mult ^= MODULE;
-	//	}
-
-	//	if (matrix_num == 3)
-	//	{
-	//		num_mult ^= state_num;
-	//	}
-
-	//	return num_mult;
-	//}
-//}
-
+/**
+  * Процедура умножения 4 байтов столбца блока состояния на фиксированный многочлен c(x)=3x^3+x^2+x+2 по модулю x^4+1 в поле Галуа
+  *
+  * \param &state Ссылка на массив, содержащий блок состояния
+  */
 void mix_columns(array <array<uint8_t, COLUMN>, STRING>& state)
 {
 	array <array<uint8_t, COLUMN>, STRING> state_before = state;
@@ -123,6 +131,14 @@ void mix_columns(array <array<uint8_t, COLUMN>, STRING>& state)
 	}
 }
 
+/**
+  * Симметричный алгоритм блочного шифрования
+  *
+  * \param data Массив, содержащий блок состояния
+  * \param key Массив, содержащий ключ шифрования
+  *
+  * \return Зашифрованный блок данных
+  */
 array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING> data, array <array<uint8_t, COLUMN>, STRING> key)
 {
 	array <array<uint8_t, COLUMN>, STRING> state = data;
@@ -160,5 +176,71 @@ array <array<uint8_t, COLUMN>, STRING> AES(array <array<uint8_t, COLUMN>, STRING
 	add_round_key(state, round_key);
 
 	return state;
+}
+
+/**
+  * Чтение данных из файла и запись шифра в файл
+  * 
+  * \param key Массив, содержащий ключ шифрования
+  */
+void cipher(array <array<uint8_t, COLUMN>, STRING> key)
+{
+	char buf[BYTES_IN_BLOCK] = {};
+	array <array<uint8_t, COLUMN>, STRING> data = {};
+	array <array<uint8_t, COLUMN>, STRING> cipher = {};
+	
+	FILE* input_data;
+	fopen_s(&input_data, FILE_DATA, "r");
+	ofstream out_data(FILE_CIPHER, ios::binary);
+
+	while (fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_data))
+	{
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				data[i][j] = buf[j + i * STRING];
+			}
+		}
+
+		fill(buf, buf + sizeof(buf), 0);
+
+		cout << "data" << endl;
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				cout << hex << static_cast<unsigned>(data[i][j]) << "  ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			fill(cipher[i].begin(), cipher[i].end(), 0);
+		}
+
+		cipher = AES(data, key);
+
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				out_data << cipher[i][j];
+			}
+		}
+
+		cout << "out_data" << endl;
+		for (uint8_t i = 0; i < STRING; i++)
+		{
+			for (uint8_t j = 0; j < COLUMN; j++)
+			{
+				cout << hex << static_cast<unsigned>(cipher[i][j]) << "  ";
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
 }
 
