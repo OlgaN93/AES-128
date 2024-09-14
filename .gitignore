@@ -6,6 +6,7 @@ AES.vcxproj.user
 cipher_data.bin
 file_data.bin
 file_key.bin
+decipher_data.bin
 x64/
 test.jpg
 testOrig.jpg
