@@ -10,9 +10,9 @@ using namespace std;
 /**
   * Процедура циклического сдвига в рядах блока состояния, обратна процедуре shift_cnt_rows
   *
-  * \param &state Ссылка на массив, содержащий блок состояния
+  * \param state Ссылка на массив, содержащий блок состояния
   */
-void inv_shift_cnt_rows(array<array<uint8_t, CNT_COLUMN>, CNT_ROW> &state)
+void inv_shift_cnt_rows(array<array<uint8_t, CNT_COLUMN>, CNT_ROW>& state)
 {
 	array<uint8_t, CNT_ROW> temp{};
 
@@ -34,31 +34,7 @@ void inv_shift_cnt_rows(array<array<uint8_t, CNT_COLUMN>, CNT_ROW> &state)
 	}
 }
 
-/**
-  * Процедура умножения 4 байтов столбца блока состояния на фиксированный многочлен c(x)=bx^3+dx^2+9x+e по модулю x^4+1 в поле Галуа
-  *
-  * \param &state Ссылка на массив, содержащий блок состояния
-  */
-void inv_mix_columns(array<array<uint8_t, CNT_COLUMN>, CNT_ROW> &state)
-{
-	array<array<uint8_t, CNT_COLUMN>, CNT_ROW> state_before = state;
-	array<uint8_t, CNT_COLUMN> matrix = INV_MATRIX;
 
-	for (uint8_t i = 0; i < CNT_ROW; i++)
-	{
-		for (uint8_t j = 0; j < CNT_COLUMN; j++)
-		{
-			state[i][j] = 0;
-
-			for (uint8_t k = 0; k < CNT_COLUMN; k++)
-			{
-				state[i][j] ^= multiply(state_before[i][k], matrix[k]);
-			}
-
-			rotate(matrix.rbegin(), matrix.rbegin() + 1, matrix.rend());
-		}
-	}
-}
 
 /**
   * Симметричный алгоритм блочного расшифрования с получением данных из массивов
@@ -78,10 +54,11 @@ array<array<uint8_t, CNT_COLUMN>, CNT_ROW> decryption(array<array<uint8_t, CNT_C
 
 	add_round_key(state, round_key);
 
-	for (uint8_t round = CNT_ROUND - 1; round >= 1; round--)
-	{
+	uint8_t round = CNT_ROUND;
+	do {
+		round--;
 		inv_shift_cnt_rows(state);
-		
+
 		for (uint8_t i = 0; i < CNT_ROW; i++)
 		{
 			sub_byte(state, i, INV_SBOX);
@@ -91,19 +68,11 @@ array<array<uint8_t, CNT_COLUMN>, CNT_ROW> decryption(array<array<uint8_t, CNT_C
 
 		add_round_key(state, round_key);
 
-		inv_mix_columns(state);
-	}
-
-	inv_shift_cnt_rows(state);
-
-	for (uint8_t i = 0; i < CNT_ROW; i++)
-	{
-		sub_byte(state, i, INV_SBOX);
-	}
-
-	round_key = extended_key[0];
-
-	add_round_key(state, round_key);
+		if (round != 0)
+		{
+			mix_columns(state, INV_MATRIX);
+		}
+	} while (round > 0);
 	
 	return state;
 }
@@ -111,13 +80,12 @@ array<array<uint8_t, CNT_COLUMN>, CNT_ROW> decryption(array<array<uint8_t, CNT_C
 /**
   * Симметричный алгоритм блочного расшифрования с получением данных из файлов
   *
-  * \param *input_cipher Файл, содержащий данные для дешифрования
-  * \param *out_decipher Файл, содержащий дешифрованные данные
-  * \param *input_key Файл, содержащий ключ шифрования
+  * \param input_cipher Файл, содержащий данные для дешифрования
+  * \param out_decipher Файл для записи дешифрованных данных
+  * \param input_key Файл, содержащий ключ шифрования
   */
-void decryption(FILE* input_cipher, FILE* out_decipher, FILE *input_key) //среда разработки исправляет на FILE*
+void decryption(FILE* input_cipher, FILE* out_decipher, FILE* input_key) 
 {
-	char buf[BYTES_IN_BLOCK] = {};
 	array<array<uint8_t, CNT_COLUMN>, CNT_ROW> key = {};
 	array<array<uint8_t, CNT_COLUMN>, CNT_ROW> decipher = {};
 	array<array<uint8_t, CNT_COLUMN>, CNT_ROW> cipher = {};
@@ -125,7 +93,6 @@ void decryption(FILE* input_cipher, FILE* out_decipher, FILE *input_key) //среда
 	for (uint8_t i = 0; i < CNT_ROW; i++)
 	{
 		fread_s(&key[i], sizeof(key[i]), sizeof(int8_t), CNT_COLUMN, input_key);
-
 	}
 	
 	cout << "key" << endl;
@@ -139,18 +106,8 @@ void decryption(FILE* input_cipher, FILE* out_decipher, FILE *input_key) //среда
 	}
 	cout << endl;
 
-	while (fread_s(buf, sizeof(buf), sizeof(int8_t), BYTES_IN_BLOCK, input_cipher))
+	while (fread_s(&cipher, sizeof(cipher), sizeof(int8_t), BYTES_IN_BLOCK, input_cipher))
 	{
-		for (uint8_t i = 0; i < CNT_ROW; i++)
-		{
-			for (uint8_t j = 0; j < CNT_COLUMN; j++)
-			{
-				cipher[i][j] = buf[j + i * CNT_ROW];
-			}
-		}
-
-		fill(buf, buf + sizeof(buf), 0);
-
 		cout << "cipher" << endl;
 		for (uint8_t i = 0; i < CNT_ROW; i++)
 		{
